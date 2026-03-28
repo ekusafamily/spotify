@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline Music Player</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar-wrapper">
+            <div class="sidebar-panel">
+                <nav class="nav-menu">
+                    <a href="#" class="active" id="nav-home"><i class="fa-solid fa-house"></i> Home</a>
+                    <a href="#" id="nav-search"><i class="fa-solid fa-magnifying-glass"></i> Search</a>
+                </nav>
+            </div>
+
+            <div class="sidebar-panel library-panel">
+                <div class="library-header">
+                    <a href="#" id="nav-library" class="library-title">
+                        <i class="fa-solid fa-book-open"></i> Your Library
+                    </a>
+                    <div style="display: flex; gap: 8px;">
+                        <button id="nav-create-playlist" title="Create Playlist"><i
+                                class="fa-solid fa-plus"></i></button>
+                        <button id="nav-enhance-library" title="🪄 AI Enhance ID3 Metadata" style="color: #1ed760;"><i
+                                class="fa-solid fa-wand-magic-sparkles"></i></button>
+                    </div>
+                </div>
+
+                <div class="playlists-scroll" id="sidebar-lists">
+                    <a href="#" id="nav-liked-songs" class="library-item">
+                        <div class="liked-icon"><i class="fa-solid fa-heart"></i></div>
+                        <div class="library-item-info">
+                            <span class="library-item-title">Liked Songs</span>
+                            <span class="library-item-subtitle"><i class="fa-solid fa-thumbtack"
+                                    style="color:#1ed760;font-size:10px;margin-right:4px;"></i>Playlist • Local</span>
+                        </div>
+                    </a>
+                    <div id="custom-playlists" class="custom-playlists-list">
+                        <!-- Custom playlists injected here -->
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-bar" id="main-top-bar">
+                <div class="nav-buttons">
+                    <button><i class="fa-solid fa-chevron-left"></i></button>
+                    <button><i class="fa-solid fa-chevron-right"></i></button>
+
+                    <div class="search-container" id="search-container">
+                        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                        <input type="text" id="search-input" placeholder="What do you want to play?">
+                    </div>
+                </div>
+                <div class="user-profile">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+            </header>
+
+            <div class="content-scroll">
+                <section class="hero-section" id="hero-section">
+                    <div class="hero-image" id="hero-image-container" style="position: relative;">
+                        <i class="fa-solid fa-music" id="hero-main-icon"></i>
+                        <canvas id="visualizer-canvas"
+                            style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; border-radius:4px;"></canvas>
+                    </div>
+                    <div class="hero-info">
+                        <span class="hero-type">Playlist</span>
+                        <h1 id="hero-title">Local Library</h1>
+                        <p class="hero-desc" id="hero-desc">Your offline tracks</p>
+                    </div>
+                </section>
+
+                <div class="action-bar">
+                    <button class="hero-play-btn" id="hero-play-btn"><i class="fa-solid fa-play"></i></button>
+                    <button class="hero-icon-btn"><i class="fa-solid fa-shuffle"></i></button>
+                </div>
+
+                <div class="songs-list-container">
+                    <div class="list-header">
+                        <div class="col-hash">#</div>
+                        <div class="col-title">Title</div>
+                        <div class="col-album">Album</div>
+                        <div class="col-time"><i class="fa-regular fa-clock"></i></div>
+                    </div>
+                    <div id="songs-list" class="songs-list">
+                        <!-- Songs injected here -->
+                        <div class="loading">Loading songs from local directory...</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Queue Panel -->
+        <aside class="queue-panel" id="queue-panel" style="display: none;">
+            <div class="queue-header" style="justify-content: space-between; align-items: center; display: flex;">
+                <h2>Queue</h2>
+                <div style="display:flex; gap:12px; align-items:center;">
+                    <button id="ai-dj-btn" class="ai-magic-btn" title="AI DJ: Recommend 5 fitting tracks"><i
+                            class="fa-solid fa-wand-magic-sparkles"></i> DJ</button>
+                    <button id="close-queue-btn"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            </div>
+            <div class="queue-content" id="queue-content">
+                <!-- Queue items injected here -->
+            </div>
+        </aside>
+    </div>
+
+    <!-- Player Bar at Bottom -->
+    <footer class="player-bar">
+        <div class="now-playing" id="now-playing">
+            <div class="album-art">
+                <i class="fa-solid fa-music"></i>
+            </div>
+            <div class="track-info">
+                <div class="track-name" id="current-track-name">Select a song</div>
+                <div class="artist-name">Local Audio</div>
+            </div>
+            <button class="heart-now-playing" id="heart-now-playing" style="display: none;">
+                <i class="fa-regular fa-heart"></i>
+            </button>
+        </div>
+
+        <div class="player-controls">
+            <div class="control-buttons">
+                <button id="shuffle-btn"><i class="fa-solid fa-shuffle"></i></button>
+                <button id="prev-btn"><i class="fa-solid fa-backward-step"></i></button>
+                <button class="play-btn" id="play-pause-btn"><i class="fa-solid fa-circle-play"></i></button>
+                <button id="next-btn"><i class="fa-solid fa-forward-step"></i></button>
+                <button id="repeat-btn"><i class="fa-solid fa-repeat"></i></button>
+            </div>
+            <div class="progress-container">
+                <span id="current-time">0:00</span>
+                <div class="progress-bar" id="progress-bar">
+                    <div class="progress" id="progress"></div>
+                </div>
+                <span id="total-time">0:00</span>
+            </div>
+        </div>
+
+        <div class="volume-controls">
+            <button id="queue-toggle-btn" class="queue-toggle-btn" title="Queue"><i
+                    class="fa-solid fa-list-ul"></i></button>
+            <i class="fa-solid fa-volume-high"></i>
+            <div class="volume-bar" id="volume-bar">
+                <div class="volume" id="volume"></div>
+            </div>
+            <button title="Full screen"><i class="fa-solid fa-expand"></i></button>
+        </div>
+
+        <audio id="audio-element-1"></audio>
+        <audio id="audio-element-2"></audio>
+    </footer>
+
+    <!-- Create Playlist Modal -->
+    <div class="modal-overlay" id="create-playlist-modal">
+        <div class="modal-content">
+            <h3 style="display:flex; justify-content:space-between; align-items:center;">
+                Create Playlist
+                <button id="ai-playlist-name-btn" class="ai-magic-btn" style="font-size:12px; padding:4px 8px;"
+                    title="🪄 Auto-Generate Name"><i class="fa-solid fa-wand-magic-sparkles"></i> Name</button>
+            </h3>
+            <input type="text" id="new-playlist-input" placeholder="Playlist Name" class="modal-input"
+                autocomplete="off">
+            <div class="modal-actions" style="display:flex; gap:12px; margin-top:24px;">
+                <button class="modal-close" id="create-playlist-cancel">Cancel</button>
+                <button class="modal-save" id="create-playlist-save">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Playlist Modal -->
+    <div class="modal-overlay" id="playlist-modal">
+        <div class="modal-content">
+            <h3>Save to Playlist</h3>
+            <div class="modal-playlist-list" id="modal-playlist-list"></div>
+            <button class="modal-close" id="modal-close-btn">Cancel</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>

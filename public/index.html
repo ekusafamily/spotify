@@ -5,9 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Offline Music Player</title>
+    <link rel="icon" type="image/png" href="favicon.png">
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="vendor/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="vendor/inter/inter.css">
 </head>
 
 <body>
@@ -115,6 +116,24 @@
                 <!-- Queue items injected here -->
             </div>
         </aside>
+
+        <!-- Equalizer Panel -->
+        <aside class="queue-panel" id="eq-panel" style="display: none; width: 350px;">
+            <div class="queue-header" style="justify-content: space-between; align-items: center; display: flex;">
+                <h2>Equalizer</h2>
+                <button id="close-eq-btn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="queue-content" style="padding: 20px; overflow: hidden;">
+                <div style="display: flex; justify-content: space-between; height: 150px; align-items: flex-end;"
+                    id="eq-sliders">
+                    <!-- Sliders injected via JS -->
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 10px; color: #b3b3b3; text-align: center; font-family: monospace;"
+                    id="eq-labels">
+                    <!-- Labels injected via JS -->
+                </div>
+            </div>
+        </aside>
     </div>
 
     <!-- Player Bar at Bottom -->
@@ -150,10 +169,12 @@
         </div>
 
         <div class="volume-controls">
+            <button id="eq-toggle-btn" class="eq-toggle-btn" title="Equalizer"><i
+                    class="fa-solid fa-sliders"></i></button>
             <button id="queue-toggle-btn" class="queue-toggle-btn" title="Queue"><i
                     class="fa-solid fa-list-ul"></i></button>
             <i class="fa-solid fa-volume-high"></i>
-            <div class="volume-bar" id="volume-bar">
+            <div class="volume-bar" id="volume-bar" title="Up to 200% Volume Boost">
                 <div class="volume" id="volume"></div>
             </div>
             <button title="Full screen"><i class="fa-solid fa-expand"></i></button>

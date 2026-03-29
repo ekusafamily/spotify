@@ -40,6 +40,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let source1, source2;
     let dataArray;
     let bufferLength;
+    let eqBands = [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
+    let filters = [];
+    let masterGain = null;
     const visualizerCanvas = document.getElementById('visualizer-canvas');
     const visualizerCtx = visualizerCanvas ? visualizerCanvas.getContext('2d') : null;
     const heroMainIcon = document.getElementById('hero-main-icon');
@@ -50,11 +53,31 @@ document.addEventListener('DOMContentLoaded', () => {
         visualizerCanvas.height = 232;
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
         analyser = audioContext.createAnalyser();
+
+        masterGain = audioContext.createGain();
+        masterGain.gain.value = 1;
+
+        // Create EQ filter chain
+        let prevNode = analyser;
+        eqBands.forEach(freq => {
+            let filter = audioContext.createBiquadFilter();
+            filter.type = 'peaking';
+            filter.frequency.value = freq;
+            filter.Q.value = 1.4; // Slightly tighter Q for 10-band
+            filter.gain.value = 0;
+            filters.push(filter);
+            prevNode.connect(filter);
+            prevNode = filter;
+        });
+
+        prevNode.connect(masterGain);
+        masterGain.connect(audioContext.destination);
+
         source1 = audioContext.createMediaElementSource(audio1);
         source2 = audioContext.createMediaElementSource(audio2);
         source1.connect(analyser);
         source2.connect(analyser);
-        analyser.connect(audioContext.destination);
+
         analyser.fftSize = 64;
         bufferLength = analyser.frequencyBinCount;
         dataArray = new Uint8Array(bufferLength);
@@ -114,12 +137,20 @@ document.addEventListener('DOMContentLoaded', () => {
         upcomingQueue = displayedSongs.slice(displayedIdx + 1).map(s => s.id);
     }
 
-    // LocalStorage State
-    let likedSongs = JSON.parse(localStorage.getItem('likedSongs')) || [];
-    let playlists = JSON.parse(localStorage.getItem('playlists')) || {};
+    // Remote Server State (Replaces LocalStorage)
+    let likedSongs = [];
+    let playlists = {};
 
-    // Fetch songs from API
-    fetch('/api/songs')
+    // Fetch User Data from Server First
+    fetch('/api/userdata')
+        .then(response => response.json())
+        .then(userData => {
+            likedSongs = userData.likedSongs || [];
+            playlists = userData.playlists || {};
+
+            // Then fetch available local songs
+            return fetch('/api/songs');
+        })
         .then(response => response.json())
         .then(data => {
             if (data.error) {
@@ -132,12 +163,16 @@ document.addEventListener('DOMContentLoaded', () => {
             renderView();
         })
         .catch(error => {
-            songsList.innerHTML = '<div class="loading">Error connecting to local server. Make sure it is running.</div>';
+            songsList.innerHTML = '<div class="loading">Error connecting to local server or parsing data. Make sure Node server is running.</div>';
         });
 
     function saveState() {
-        localStorage.setItem('likedSongs', JSON.stringify(likedSongs));
-        localStorage.setItem('playlists', JSON.stringify(playlists));
+        // Asynchronously dump state to Server Backend
+        fetch('/api/userdata', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ likedSongs, playlists })
+        }).catch(err => console.error('Failed to save persistent state:', err));
     }
 
     // Navigation and Rendering
@@ -740,16 +775,91 @@ document.addEventListener('DOMContentLoaded', () => {
 
     volumeBar.addEventListener('click', (e) => {
         const rect = volumeBar.getBoundingClientRect();
-        globalVolume = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+        const clickRatio = (e.clientX - rect.left) / rect.width;
+
+        // 0.5 ratio = 100% volume (1.0). 1.0 ratio = 200% volume (2.0)
+        globalVolume = Math.max(0, Math.min(2.0, clickRatio * 2.0));
+
+        let audioVol = Math.min(1.0, globalVolume);
+        let boostVol = Math.max(1.0, globalVolume);
+
         if (!crossfadingAudio) {
-            activeAudio.volume = globalVolume;
+            activeAudio.volume = audioVol;
         }
-        volume.style.width = `${globalVolume * 100}%`;
+        if (masterGain) {
+            masterGain.gain.value = boostVol;
+        }
+
+        volume.style.width = `${clickRatio * 100}%`;
+        if (globalVolume > 1.0) {
+            volume.style.backgroundColor = '#ff4d4d'; // Display red for boost
+        } else {
+            volume.style.backgroundColor = '#fff';
+        }
     });
 
-    volume.style.width = `100%`;
+    volume.style.width = `50%`; // Visually 50% = 1.0 actual volume
     audio1.volume = 1;
     audio2.volume = 1;
+
+    // Equalizer UI Logic
+    const eqToggleBtn = document.getElementById('eq-toggle-btn');
+    const eqPanel = document.getElementById('eq-panel');
+    const closeEqBtn = document.getElementById('close-eq-btn');
+    const eqSlidersContainer = document.getElementById('eq-sliders');
+    const eqLabelsContainer = document.getElementById('eq-labels');
+
+    if (eqToggleBtn) {
+        eqToggleBtn.addEventListener('click', () => {
+            initVisualizer();
+            eqPanel.style.display = eqPanel.style.display === 'none' ? 'block' : 'none';
+        });
+        closeEqBtn.addEventListener('click', () => eqPanel.style.display = 'none');
+
+        eqBands.forEach((freq, index) => {
+            const sliderWrapper = document.createElement('div');
+            sliderWrapper.style.display = 'flex';
+            sliderWrapper.style.flexDirection = 'column';
+            sliderWrapper.style.alignItems = 'center';
+            sliderWrapper.style.height = '100%';
+
+            const valueDisplay = document.createElement('span');
+            valueDisplay.style.fontSize = '9px';
+            valueDisplay.style.color = '#1ed760';
+            valueDisplay.style.marginBottom = '5px';
+            valueDisplay.textContent = '0db';
+
+            const input = document.createElement('input');
+            input.type = 'range';
+            input.min = -12;
+            input.max = 12;
+            input.value = 0;
+            input.step = 0.5;
+            input.className = 'eq-slider-vertical';
+
+            input.addEventListener('input', (e) => {
+                initVisualizer();
+                const val = parseFloat(e.target.value);
+                valueDisplay.textContent = `${val > 0 ? '+' : ''}${val}db`;
+                if (filters[index]) {
+                    filters[index].gain.value = val;
+                }
+            });
+
+            const sliderContainer = document.createElement('div');
+            sliderContainer.className = 'slider-container';
+            sliderContainer.appendChild(input);
+
+            sliderWrapper.appendChild(valueDisplay);
+            sliderWrapper.appendChild(sliderContainer);
+            eqSlidersContainer.appendChild(sliderWrapper);
+
+            const label = document.createElement('div');
+            label.textContent = freq >= 1000 ? `${freq / 1000}k` : freq;
+            label.style.width = '24px';
+            eqLabelsContainer.appendChild(label);
+        });
+    }
 
     // AI Integration Logic
     const navEnhanceLibrary = document.getElementById('nav-enhance-library');

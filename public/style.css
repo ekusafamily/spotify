@@ -966,8 +966,61 @@ body {
 }
 
 .modal-save:hover {
-    transform: scale(1.02);
-    background-color: #1fdf64;
+    transform: scale(1.04);
+}
+
+/* Equalizer Styles */
+.eq-toggle-btn {
+    background: none;
+    border: none;
+    color: #b3b3b3;
+    font-size: 16px;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.eq-toggle-btn:hover {
+    color: #1ed760;
+}
+
+.slider-container {
+    width: 24px;
+    height: 120px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+input[type=range].eq-slider-vertical {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 120px;
+    /* length */
+    height: 4px;
+    /* thickness */
+    background: #535353;
+    outline: none;
+    border-radius: 2px;
+    transform: rotate(-90deg);
+    position: absolute;
+    margin: 0;
+}
+
+input[type=range].eq-slider-vertical::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    background: #1ed760;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    transition: transform 0.1s;
+}
+
+input[type=range].eq-slider-vertical::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
 }
 
 .drag-handle {

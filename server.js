@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
@@ -9,26 +10,38 @@ const PORT = 3000;
 // Default Music Directory (Windows)
 const MUSIC_DIR = process.env.MUSIC_DIR || 'C:\\Users\\Administrator\\Music';
 const METADATA_FILE = path.join(__dirname, 'metadata.json');
+const USERDATA_FILE = path.join(__dirname, 'userdata.json');
 
 app.use(cors());
 app.use(express.json());
 
-async function askOllama(prompt) {
+async function askAI(prompt) {
     try {
-        const response = await fetch('http://127.0.0.1:11434/api/generate', {
+        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+                'HTTP-Referer': 'http://localhost:3000', // Optional, for OpenRouter rankings
+                'X-Title': 'Offline Spotify Clone' // Optional, for OpenRouter rankings
+            },
             body: JSON.stringify({
-                model: 'phi3',
-                prompt: prompt,
-                stream: false
+                model: process.env.OPENROUTER_MODEL || 'google/gemini-flash-1.5',
+                messages: [
+                    { role: 'user', content: prompt }
+                ]
             })
         });
+
         const data = await response.json();
-        return data.response.trim();
+        if (data.choices && data.choices.length > 0) {
+            return data.choices[0].message.content.trim();
+        }
+        console.error("OpenRouter Error Data:", data);
+        return null;
     } catch (error) {
-        console.error("Ollama Error:", error);
-        return null; // Return null so we can fallback
+        console.error("OpenRouter API Error:", error);
+        return null;
     }
 }
 
@@ -37,6 +50,29 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Serve the music files as static to enable seeking/streaming easily
 app.use('/music', express.static(MUSIC_DIR));
+
+// Server-Side Persistent Storage (Playlists and Liked Songs)
+app.get('/api/userdata', (req, res) => {
+    if (fs.existsSync(USERDATA_FILE)) {
+        try {
+            const data = JSON.parse(fs.readFileSync(USERDATA_FILE, 'utf8'));
+            res.json(data);
+        } catch (e) {
+            res.json({ likedSongs: [], playlists: {} });
+        }
+    } else {
+        res.json({ likedSongs: [], playlists: {} });
+    }
+});
+
+app.post('/api/userdata', (req, res) => {
+    try {
+        fs.writeFileSync(USERDATA_FILE, JSON.stringify(req.body, null, 2));
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: 'Failed to save userdata' });
+    }
+});
 
 // API to list all songs (supports cached AI Metadata)
 app.get('/api/songs', (req, res) => {
@@ -93,7 +129,7 @@ app.post('/api/ai/recommend', async (req, res) => {
     const listStr = allSongsPreview.map(s => `${s.id}: ${s.label}`).join('\n');
     const prompt = `You are an expert AI DJ. The user just listened to these songs:\n${playedSongs.join('\n')}\n\nBased on the vibe of those songs, pick exactly 5 similar or fitting songs from the user's local library list below.\nLocal Library:\n${listStr}\n\nReturn ONLY a JSON array of the 5 integer IDs you choose, like [4, 7, 12, 2, 8]. Do not explain your choices.`;
 
-    const result = await askOllama(prompt);
+    const result = await askAI(prompt);
     if (!result) return res.status(500).json({ error: 'AI server unreachable' });
 
     try {
@@ -111,7 +147,7 @@ app.post('/api/ai/playlist-name', async (req, res) => {
 
     const prompt = `You are an expert playlist curator. Generate a short, catchy, and creative playlist name (2-4 words maximum) for a playlist containing the following songs:\n${songs.join('\n')}\n\nReturn ONLY the playlist name without any quotes or explanations.`;
 
-    let result = await askOllama(prompt);
+    let result = await askAI(prompt);
     if (result) {
         result = result.replace(/^"|"(.*)$/g, '$1').trim();
         res.json({ name: result });
@@ -138,7 +174,7 @@ app.post('/api/ai/metadata', async (req, res) => {
         const prompt = `You are a music metadata extractor. Extract the real artist name and track title from this messy filename: "${rawName}". \nRespond ONLY with a valid JSON strictly in this exact format: {"artist": "ArtistName", "title": "TrackTitle"}. \nDo not include any other conversational text. If you cannot extract the artist, put "Unknown Artist".\n\nFilename: ${rawName}\nJSON:`;
 
         console.log(`Analyzing: ${rawName}`);
-        const result = await askOllama(prompt);
+        const result = await askAI(prompt);
         if (result) {
             try {
                 const jsonStr = result.substring(result.indexOf('{'), result.lastIndexOf('}') + 1);

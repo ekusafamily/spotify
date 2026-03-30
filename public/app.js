@@ -171,6 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     function applyDynamicTheme(id) {
+        if (id === null || id === undefined) return;
         const icon = getIconForId(id.toString());
         const theme = iconThemes[icon] || 'linear-gradient(135deg, #121212 0%, #1ed760 100%)';
 
@@ -209,6 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let sleepTimerEnd = null;
     let sleepTimerInterval = null;
     let visualizerMode = 'bars'; // bars, pulse, wave
+    let remoteSongs = []; // Cache for remote search
 
     const shuffleBtn = document.getElementById('shuffle-btn');
     const muteBtn = document.getElementById('mute-btn');
@@ -338,16 +340,72 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function setupRemoteListeners() {
-        const remoteMainView = document.getElementById('remote-main-view');
-        const remoteQueueView = document.getElementById('remote-queue-view');
-        const remoteQueueToggle = document.getElementById('remote-queue-toggle');
-
-        remoteQueueToggle.onclick = () => {
-            const isQueueOpen = remoteQueueView.style.display === 'flex';
-            remoteQueueView.style.display = isQueueOpen ? 'none' : 'flex';
-            remoteMainView.style.display = isQueueOpen ? 'flex' : 'none';
-            remoteQueueToggle.classList.toggle('active', !isQueueOpen);
+        const remoteNavItems = document.querySelectorAll('.remote-nav-item');
+        const remoteViews = {
+            'main': document.getElementById('remote-main-view'),
+            'library': document.getElementById('remote-library-view'),
+            'queue': document.getElementById('remote-queue-view')
         };
+        const remoteLibContent = document.getElementById('remote-library-content');
+        const remoteLibSearch = document.getElementById('remote-library-search');
+
+        function switchRemoteView(viewId) {
+            Object.keys(remoteViews).forEach(key => {
+                if (remoteViews[key]) remoteViews[key].style.display = (key === viewId) ? 'flex' : 'none';
+            });
+            remoteNavItems.forEach(btn => {
+                btn.classList.toggle('active', btn.getAttribute('data-view') === viewId);
+            });
+
+            if (viewId === 'library') {
+                if (remoteSongs.length === 0) {
+                    fetch('/api/songs').then(r => r.json()).then(data => {
+                        remoteSongs = data;
+                        renderRemoteLibrary(remoteSongs);
+                    });
+                } else {
+                    renderRemoteLibrary(remoteSongs);
+                }
+            }
+        }
+
+        function renderRemoteLibrary(songs) {
+            if (!remoteLibContent) return;
+            let html = '';
+            songs.forEach(song => {
+                html += `
+                    <div class="remote-queue-item" data-id="${song.id}">
+                        <div class="remote-queue-img"><i class="fa-solid ${getIconForId(song.id.toString())}"></i></div>
+                        <div class="remote-queue-info">
+                            <div class="remote-queue-title">${song.title}</div>
+                            <div class="remote-queue-artist">${song.artist}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            remoteLibContent.innerHTML = html;
+            remoteLibContent.querySelectorAll('.remote-queue-item').forEach(item => {
+                item.onclick = () => {
+                    sendRemoteCommand({ command: 'PLAY_QUEUE_ID', id: item.getAttribute('data-id') });
+                    switchRemoteView('main');
+                };
+            });
+        }
+
+        remoteNavItems.forEach(item => {
+            item.onclick = () => switchRemoteView(item.getAttribute('data-view'));
+        });
+
+        if (remoteLibSearch) {
+            remoteLibSearch.oninput = (e) => {
+                const query = e.target.value.toLowerCase();
+                const filtered = remoteSongs.filter(s =>
+                    s.title.toLowerCase().includes(query) ||
+                    s.artist.toLowerCase().includes(query)
+                );
+                renderRemoteLibrary(filtered);
+            };
+        }
 
         // Remote Sleep Dropdown Listeners
         const remoteSleepItems = document.querySelectorAll('#remote-sleep-dropdown div');
@@ -401,8 +459,6 @@ document.addEventListener('DOMContentLoaded', () => {
         remoteVolumeBar.onclick = (e) => {
             const rect = remoteVolumeBar.getBoundingClientRect();
             const pos = (e.clientX - rect.left) / rect.width;
-            // pos is 0.0 to 1.0. Host volume is 0.0 to 2.0.
-            // Map pos to 0.0-2.0
             sendRemoteCommand({ command: 'VOLUME', value: pos * 2.0 });
         };
     }
@@ -420,6 +476,8 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const res = await fetch('/api/sync/state');
                 const state = await res.json();
+                state.upcomingQueue = state.upcomingQueue || [];
+                state.recommendedQueue = state.recommendedQueue || [];
                 updateRemoteUI(state);
             } catch (e) {
                 console.error("Remote Sync Failed", e);
@@ -516,6 +574,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 `;
             });
+        } else {
+            html += '<div style="color: #b3b3b3; text-align: center; margin-top: 40px; font-size: 14px;">The queue is currently empty.</div>';
         }
 
         if (state.recommendedQueue && state.recommendedQueue.length > 0) {
@@ -565,8 +625,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     isMuted: isMuted,
                     volume: globalVolume,
                     upcomingQueue: upcomingQueue.map(id => {
-                        const s = allSongs.find(x => x.id === id);
-                        return s ? { id: s.id, title: s.title, artist: s.artist } : { id: id, title: "Track " + id };
+                        const s = allSongs.find(x => String(x.id) === String(id));
+                        return s ? { id: s.id, title: s.title, artist: s.artist } : { id: id, title: "Track " + id, artist: "Unknown" };
                     }),
                     recommendedQueue: recommendedQueue.map(s => ({ id: s.id, title: s.title, artist: s.artist })),
                     sleepTimerLeft: sleepTimerEnd ? Math.max(0, Math.floor((sleepTimerEnd - Date.now()) / 1000)) : null
@@ -1527,6 +1587,73 @@ document.addEventListener('DOMContentLoaded', () => {
         vizBtns.forEach(btn => {
             btn.onclick = () => setVisualizerMode(btn.getAttribute('data-mode'));
         });
+    }
+
+    // Remote Search Toggle
+    const remoteSearchToggle = document.getElementById('remote-search-toggle');
+    const remoteSearchContainer = document.getElementById('remote-search-container');
+    const remoteSearchResults = document.getElementById('remote-search-results');
+    const remoteArtContainer = document.getElementById('remote-art-container');
+    const remoteSearchInput = document.getElementById('remote-search-input');
+    const remoteInfo = document.querySelector('.remote-info');
+
+    if (remoteSearchToggle && remoteSearchContainer && remoteSearchResults && remoteArtContainer && remoteInfo) {
+        remoteSearchToggle.onclick = () => {
+            const isSearchOpen = remoteSearchContainer.style.display === 'block';
+            remoteSearchContainer.style.display = isSearchOpen ? 'none' : 'block';
+            remoteSearchResults.style.display = isSearchOpen ? 'none' : 'block';
+
+            // Hide other elements to make room for search
+            remoteArtContainer.style.display = isSearchOpen ? 'flex' : 'none';
+            remoteInfo.style.display = isSearchOpen ? 'block' : 'none';
+
+            // Optional: Hide progress and controls if screen is small
+            const remoteProgress = document.querySelector('.remote-progress-section');
+            const remoteControls = document.querySelector('.remote-controls');
+            if (remoteProgress) remoteProgress.style.display = isSearchOpen ? 'block' : 'none';
+            if (remoteControls) remoteControls.style.display = isSearchOpen ? 'flex' : 'none';
+
+            remoteSearchToggle.classList.toggle('active', !isSearchOpen);
+            if (!isSearchOpen) {
+                remoteSearchInput.focus();
+                if (remoteSongs.length === 0) {
+                    fetch('/api/songs').then(r => r.json()).then(data => remoteSongs = data);
+                }
+            }
+        };
+    }
+
+    if (remoteSearchInput) {
+        remoteSearchInput.oninput = (e) => {
+            const query = e.target.value.toLowerCase();
+            if (!query) {
+                remoteSearchResults.innerHTML = '';
+                return;
+            }
+            const filtered = remoteSongs.filter(s =>
+                s.title.toLowerCase().includes(query) ||
+                s.artist.toLowerCase().includes(query)
+            ).slice(0, 20);
+
+            let html = '';
+            filtered.forEach(song => {
+                html += `
+                    <div class="remote-queue-item" data-id="${song.id}">
+                        <div class="remote-queue-img"><i class="fa-solid ${getIconForId(song.id.toString())}"></i></div>
+                        <div class="remote-queue-info">
+                            <div class="remote-queue-title">${song.title}</div>
+                            <div class="remote-queue-artist">${song.artist}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            remoteSearchResults.innerHTML = html;
+            remoteSearchResults.querySelectorAll('.remote-queue-item').forEach(item => {
+                item.onclick = () => {
+                    sendRemoteCommand({ command: 'PLAY_QUEUE_ID', id: item.getAttribute('data-id') });
+                };
+            });
+        };
     }
 
     // Initialize library

@@ -212,8 +212,6 @@
                 <button id="remote-sleep-toggle" class="remote-icon-btn" title="Sleep Timer"><i
                         class="fa-solid fa-moon"></i><span id="remote-sleep-countdown"
                         style="font-size: 10px; margin-left: 2px;"></span></button>
-                <button id="remote-queue-toggle" class="remote-icon-btn" title="Toggle Queue"><i
-                        class="fa-solid fa-list-ul"></i></button>
                 <div id="remote-host-status" class="remote-status-badge">Connected</div>
             </div>
         </div>
@@ -228,7 +226,13 @@
         <div class="remote-content">
             <div id="remote-main-view" class="remote-view-section"
                 style="width: 100%; display: flex; flex-direction: column; align-items: center;">
-                <div class="remote-art-container">
+                <div class="remote-search-container" id="remote-search-container">
+                    <i class="fa-solid fa-magnifying-glass remote-search-icon"></i>
+                    <input type="text" id="remote-search-input" placeholder="Search for a song...">
+                </div>
+                <div id="remote-search-results" class="remote-search-results" style="display: none;"></div>
+
+                <div class="remote-art-container" id="remote-art-container">
                     <div class="remote-art" id="remote-art">
                         <i class="fa-solid fa-music"></i>
                         <div class="remote-visualizer-overlay">
@@ -283,6 +287,17 @@
                 </div>
             </div>
 
+            <div id="remote-library-view" class="remote-view-section" style="display: none;">
+                <h3 style="margin-bottom: 10px; font-weight: 800;">Library</h3>
+                <div class="remote-search-container" style="display: block; width: 100%; margin: 10px 0;">
+                    <i class="fa-solid fa-magnifying-glass remote-search-icon"></i>
+                    <input type="text" id="remote-library-search" placeholder="Search all songs...">
+                </div>
+                <div id="remote-library-content">
+                    <!-- Complete library injected here -->
+                </div>
+            </div>
+
             <div id="remote-queue-view" class="remote-view-section"
                 style="display: none; width: 100%; flex: 1; overflow-y: auto;">
                 <h3 style="margin-bottom: 20px; font-weight: 800;">Queue</h3>
@@ -290,6 +305,21 @@
                     <!-- Remote queue items injected here -->
                 </div>
             </div>
+        </div>
+
+        <div class="remote-nav-bar">
+            <button class="remote-nav-item active" data-view="main">
+                <i class="fa-solid fa-house"></i>
+                <span>Home</span>
+            </button>
+            <button class="remote-nav-item" data-view="library">
+                <i class="fa-solid fa-music"></i>
+                <span>Library</span>
+            </button>
+            <button class="remote-nav-item" data-view="queue">
+                <i class="fa-solid fa-list-ul"></i>
+                <span>Queue</span>
+            </button>
         </div>
     </div>
 

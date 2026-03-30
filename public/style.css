@@ -1467,7 +1467,7 @@ input[type=range].eq-slider-vertical::-webkit-slider-thumb:hover {
     border-radius: 8px;
     padding: 8px 0;
     z-index: 1001;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
     width: 140px;
 }
 
@@ -1475,7 +1475,7 @@ input[type=range].eq-slider-vertical::-webkit-slider-thumb:hover {
     padding: 12px 20px;
     font-size: 14px;
     color: #fff;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .remote-sleep-dropdown div:last-child {
@@ -1483,7 +1483,7 @@ input[type=range].eq-slider-vertical::-webkit-slider-thumb:hover {
 }
 
 .remote-sleep-dropdown div:active {
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
 }
 
 
@@ -1546,5 +1546,111 @@ input[type=range].eq-slider-vertical::-webkit-slider-thumb:hover {
     align-items: center;
     justify-content: center;
     font-size: 14px;
+}
+
+
+
+/* Mobile Remote Enhancements */
+#remote-queue-view {
+    height: calc(100vh - 120px);
+    display: flex;
+    flex-direction: column;
+}
+
+#remote-queue-content {
+    flex: 1;
+    overflow-y: auto;
+    padding-bottom: 20px;
+    -webkit-overflow-scrolling: touch;
+    /* Smooth scrolling for iOS */
+}
+
+.remote-search-container {
+    width: 90%;
+    margin: 10px auto;
+    position: relative;
+    display: none;
+    /* Hidden by default, toggled by search button */
+}
+
+#remote-search-input {
+    width: 100%;
+    background: #333;
+    border: none;
+    padding: 12px 15px 12px 40px;
+    border-radius: 25px;
+    color: #fff;
+    font-size: 14px;
+}
+
+.remote-search-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #b3b3b3;
+}
+
+.remote-search-results {
+    flex: 1;
+    overflow-y: auto;
+    width: 100%;
+    max-height: calc(100vh - 250px);
+}
+
+/* Bottom Navigation for Remote */
+.remote-nav-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: #181818;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 10px 0;
+    border-top: 1px solid #282828;
+    z-index: 1000;
+}
+
+.remote-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: #b3b3b3;
+    font-size: 10px;
+    cursor: pointer;
+    transition: color 0.2s;
+    background: none;
+    border: none;
+}
+
+.remote-nav-item.active {
+    color: #fff;
+}
+
+.remote-nav-item i {
+    font-size: 18px;
+}
+
+/* Library View for Remote */
+#remote-library-view {
+    height: calc(100vh - 120px);
+    display: none;
+    flex-direction: column;
+    width: 100%;
+}
+
+#remote-library-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Adjust padding for bottom nav */
+#remote-control-view {
+    padding-bottom: 70px !important;
 }
 

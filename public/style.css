@@ -839,8 +839,28 @@ body {
     transition: color .2s
 }
 
-.volume-controls button:hover {
+.volume-controls button:hover,
+.volume-mute-btn:hover {
     color: #fff
+}
+
+.volume-mute-btn {
+    background: none;
+    border: none;
+    color: var(--text-base);
+    font-size: 16px;
+    cursor: pointer;
+    transition: color .2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+}
+
+.volume-mute-btn.muted,
+.remote-icon-btn.muted {
+    color: #ff4d4d !important;
 }
 
 .volume-controls button.active {
@@ -992,6 +1012,246 @@ body {
     align-items: center;
 }
 
+#shuffle-btn.active,
+.player-controls .control-buttons button.active {
+    color: #1ed760;
+}
+
+/* Remote Control UI Styles - Premium Mobile Optimized */
+.remote-control-view {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: linear-gradient(180deg, #1db954 0%, #121212 40%, #000 100%);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    color: white;
+    font-family: 'Inter', sans-serif;
+    overflow: hidden;
+}
+
+.remote-header {
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-weight: 700;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+}
+
+.remote-status-badge {
+    font-size: 10px;
+    background: rgba(29, 185, 84, 0.2);
+    color: #1ed760;
+    padding: 4px 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(29, 185, 84, 0.3);
+}
+
+.remote-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 20px 32px 40px;
+    gap: 30px;
+}
+
+.remote-art-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.remote-art {
+    width: 75vw;
+    height: 75vw;
+    max-width: 320px;
+    max-height: 320px;
+    background: #282828;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+    position: relative;
+    overflow: hidden;
+}
+
+.remote-art i {
+    font-size: 80px;
+    color: rgba(255, 255, 255, 0.2);
+}
+
+.remote-info {
+    width: 100%;
+    margin-top: 10px;
+}
+
+.remote-info h2 {
+    font-size: 24px;
+    font-weight: 800;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.remote-info p {
+    color: #b3b3b3;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.remote-icon-btn {
+    background: none;
+    border: none;
+    color: #b3b3b3;
+    font-size: 24px;
+    cursor: pointer;
+    transition: color 0.2s, transform 0.2s;
+}
+
+.remote-icon-btn.liked {
+    color: #1ed760;
+}
+
+/* Progress Section */
+.remote-progress-section {
+    width: 100%;
+}
+
+.remote-progress-container {
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    position: relative;
+    cursor: pointer;
+    margin-bottom: 8px;
+}
+
+.remote-progress-fill {
+    height: 100%;
+    background: #fff;
+    border-radius: 2px;
+    width: 0%;
+    position: relative;
+}
+
+.remote-progress-fill::after {
+    content: '';
+    position: absolute;
+    right: -6px;
+    top: -4px;
+    width: 12px;
+    height: 12px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.remote-time-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #b3b3b3;
+    font-weight: 500;
+}
+
+/* Controls Section */
+.remote-controls {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+.remote-main-btns {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+}
+
+.remote-secondary-btn {
+    background: none;
+    border: none;
+    color: #b3b3b3;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.remote-secondary-btn.active {
+    color: #1ed760;
+}
+
+.remote-nav-btn {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 28px;
+    cursor: pointer;
+}
+
+.remote-play-btn {
+    background: #fff;
+    border: none;
+    color: #000;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    font-size: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+.remote-play-btn:active {
+    transform: scale(0.95);
+}
+
+/* Volume Section */
+.remote-volume-section {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 20px;
+    color: #b3b3b3;
+}
+
+.remote-volume-section i {
+    font-size: 14px;
+}
+
+.remote-volume-bar {
+    flex: 1;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    position: relative;
+    cursor: pointer;
+}
+
+.remote-volume-fill {
+    height: 100%;
+    background: #1ed760;
+    border-radius: 2px;
+    width: 50%;
+}
+
+
 input[type=range].eq-slider-vertical {
     -webkit-appearance: none;
     appearance: none;
@@ -1075,3 +1335,216 @@ input[type=range].eq-slider-vertical::-webkit-slider-thumb:hover {
 .ai-magic-btn i {
     font-size: 14px;
 }
+
+/* Sleep Timer Styles */
+.sleep-timer-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin-right: 12px;
+}
+
+.sleep-timer-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 8px;
+    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.sleep-timer-btn:hover {
+    color: #fff;
+}
+
+.sleep-timer-btn.active {
+    color: #1ed760;
+}
+
+.sleep-timer-dropdown {
+    position: absolute;
+    bottom: 40px;
+    right: 0;
+    background: #282828;
+    border-radius: 4px;
+    padding: 5px 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    display: none;
+    z-index: 1000;
+    min-width: 100px;
+}
+
+.sleep-timer-dropdown div {
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #b3b3b3;
+}
+
+.sleep-timer-dropdown div:hover {
+    background: #3e3e3e;
+    color: #fff;
+}
+
+.sleep-timer-container:hover .sleep-timer-dropdown {
+    display: block;
+}
+
+/* Remote Queue Styles */
+.remote-queue-section-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+    margin: 24px 0 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.remote-queue-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.remote-queue-item:active {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.remote-queue-img {
+    width: 44px;
+    height: 44px;
+    background: #282828;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #b3b3b3;
+    font-size: 20px;
+}
+
+.remote-queue-info {
+    flex: 1;
+    overflow: hidden;
+}
+
+.remote-queue-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.remote-queue-artist {
+    font-size: 12px;
+    color: #b3b3b3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.remote-icon-btn.active {
+    color: #1ed760 !important;
+}
+
+/* Remote Sleep Timer */
+.remote-sleep-dropdown {
+    position: absolute;
+    top: 60px;
+    right: 20px;
+    background: #282828;
+    border-radius: 8px;
+    padding: 8px 0;
+    z-index: 1001;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+    width: 140px;
+}
+
+.remote-sleep-dropdown div {
+    padding: 12px 20px;
+    font-size: 14px;
+    color: #fff;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.remote-sleep-dropdown div:last-child {
+    border-bottom: none;
+}
+
+.remote-sleep-dropdown div:active {
+    background: rgba(255,255,255,0.1);
+}
+
+
+
+/* Visualizer Gallery Styles */
+.visualizer-selector {
+    position: absolute;
+    bottom: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 4px 8px;
+    border-radius: 20px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+#hero-image-container:hover .visualizer-selector {
+    opacity: 1;
+}
+
+.visualizer-selector button {
+    background: none;
+    border: none;
+    color: #b3b3b3;
+    font-size: 14px;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.visualizer-selector button:hover {
+    color: #fff;
+}
+
+.remote-visualizer-overlay {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.remote-art:hover .remote-visualizer-overlay {
+    opacity: 1;
+}
+
+.remote-visualizer-overlay button {
+    background: rgba(0, 0, 0, 0.6);
+    border: none;
+    color: #fff;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}
+
